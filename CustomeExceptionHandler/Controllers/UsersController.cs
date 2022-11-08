@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CustomeExceptionHandler.Models;
+using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,35 +9,31 @@ namespace CustomeExceptionHandler.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        // GET: api/<UsersController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        public ActionResult<List<AppUser>> Get()
         {
-            return new string[] { "value1", "value2" };
+            List<AppUser> users = new List<AppUser>();
+            users.Add(new AppUser
+            {
+                Username = "test",
+                FirstName = "Abc",
+                LastName = "Xyz",
+                Age = 30,
+                Email = "test@test.com"
+            });
+            return users;
         }
 
-        // GET api/<UsersController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{username}")]
+        public ActionResult<AppUser> GetUserByName(string username)
         {
-            return "value";
+            List<AppUser> users = new List<AppUser>();
+            var user = users.Where(x => x.Username == username).First();
+            return NotFound();
         }
 
         // POST api/<UsersController>
         [HttpPost]
         public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<UsersController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<UsersController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
         {
         }
     }

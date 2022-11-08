@@ -1,15 +1,44 @@
-var builder = WebApplication.CreateBuilder(args);
+using CustomeExceptionHandler.Middlewares;
+using CustomeExceptionHandler.Services.Logger;
+using NLog;
+using NLog.Web;
 
-// Add services to the container.
+var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
-builder.Services.AddControllers();
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+    // Add services to the container.
+    builder.Services.AddSingleton<ILoggerService, LoggerService>();
 
-// Configure the HTTP request pipeline.
+    builder.Services.AddControllers();
 
-app.UseAuthorization();
+    // NLog: Setup NLog for Dependency injection
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
 
-app.MapControllers();
+    var app = builder.Build();
 
-app.Run();
+    // Configure the HTTP request pipeline.
+    app.UseMiddleware<ExceptionMiddleware>();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
+
+}
+catch (Exception exception)
+{
+    // NLog: catch setup errors
+    logger.Error(exception, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    // Ensure to flush and stop internal timers/threads before application-exit (Avoid segmentation fault on Linux)
+    LogManager.Shutdown();
+}
+
